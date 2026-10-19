@@ -15,14 +15,13 @@ enum class WidgetKind(val provider: Class<out BaseWidget>) {
     POWER(PowerWidget::class.java),
     COMPACT(CompactWidget::class.java),
     RING(RingWidget::class.java),
-    STRIP(StripWidget::class.java),
-    FLOW(FlowWidget::class.java),
 }
 
 object WidgetRenderer {
     private val FG = 0xFFE7F0EA.toInt()
     private val MUTED = 0xFF8EA097.toInt()
     private val ACCENT = 0xFF3DDC97.toInt()
+    private val BATTERY_OK = 0xFF1F8F5C.toInt()
     private val AMBER = 0xFFFFB84D.toInt()
     private val BLUE = 0xFF4DA3FF.toInt()
     private val VIOLET = 0xFFB28DFF.toInt()
@@ -45,8 +44,6 @@ object WidgetRenderer {
             WidgetKind.POWER -> power(context, snap)
             WidgetKind.COMPACT -> compact(context, snap)
             WidgetKind.RING -> ring(context, snap)
-            WidgetKind.STRIP -> strip(context, snap)
-            WidgetKind.FLOW -> flow(context, snap)
         }
         chrome(context, views)
         return views
@@ -68,7 +65,7 @@ object WidgetRenderer {
 
     private fun batteryColor(battery: Int): Int = when {
         battery < 0 -> MUTED
-        battery >= 50 -> ACCENT
+        battery >= 50 -> BATTERY_OK
         battery >= 20 -> AMBER
         else -> DANGER
     }
@@ -138,53 +135,7 @@ object WidgetRenderer {
         return views
     }
 
-    private fun strip(context: Context, snap: Snapshot): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_strip)
-        if (snap.fresh()) {
-            views.setTextViewText(R.id.strip_load, "${snap.loadW} Вт")
-            views.setTextColor(R.id.strip_load, FG)
-            views.setTextViewText(R.id.strip_ac, snap.acOut.toString())
-            views.setTextViewText(R.id.strip_dc, snap.dcOut.toString())
-            views.setTextViewText(R.id.strip_bat, batteryText(snap))
-            views.setTextColor(R.id.strip_bat, batteryColor(snap.battery))
-        } else {
-            views.setTextViewText(R.id.strip_load, "—")
-            views.setTextColor(R.id.strip_load, MUTED)
-            views.setTextViewText(R.id.strip_ac, "—")
-            views.setTextViewText(R.id.strip_dc, "—")
-            views.setTextViewText(R.id.strip_bat, "—%")
-            views.setTextColor(R.id.strip_bat, MUTED)
-        }
-        return views
-    }
 
-    private fun flow(context: Context, snap: Snapshot): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_flow)
-        if (snap.fresh()) {
-            views.setTextViewText(R.id.flow_caption, "Bluetti EB3A  ·  ${snap.loadW} Вт")
-            views.setTextViewText(R.id.flow_battery, batteryText(snap))
-            views.setTextColor(R.id.flow_battery, batteryColor(snap.battery))
-            views.setProgressBar(R.id.flow_bat_bar, 100, snap.battery.coerceIn(0, 100), false)
-            views.setProgressBar(R.id.flow_ac_bar, 100, pct(snap.acOut, 600), false)
-            views.setProgressBar(R.id.flow_dc_bar, 100, pct(snap.dcOut, 200), false)
-            views.setProgressBar(R.id.flow_in_bar, 100, pct(snap.chargeW, 500), false)
-            views.setTextViewText(R.id.flow_ac_val, "${snap.acOut} Вт")
-            views.setTextViewText(R.id.flow_dc_val, "${snap.dcOut} Вт")
-            views.setTextViewText(R.id.flow_in_val, "${snap.chargeW} Вт")
-        } else {
-            views.setTextViewText(R.id.flow_caption, snap.status.ifBlank { "Нет связи" })
-            views.setTextViewText(R.id.flow_battery, "—%")
-            views.setTextColor(R.id.flow_battery, MUTED)
-            views.setProgressBar(R.id.flow_bat_bar, 100, 0, false)
-            views.setProgressBar(R.id.flow_ac_bar, 100, 0, false)
-            views.setProgressBar(R.id.flow_dc_bar, 100, 0, false)
-            views.setProgressBar(R.id.flow_in_bar, 100, 0, false)
-            views.setTextViewText(R.id.flow_ac_val, "—")
-            views.setTextViewText(R.id.flow_dc_val, "—")
-            views.setTextViewText(R.id.flow_in_val, "—")
-        }
-        return views
-    }
 
     /** Внешнее кольцо — батарея, тонкое внутреннее — нагрузка (до 600 Вт). */
     private fun ringBitmap(context: Context, battery: Int, load: Int): Bitmap {

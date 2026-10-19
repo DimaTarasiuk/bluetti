@@ -175,7 +175,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/outfit"
                     android:text="—"
-                    android:textColor="@color/accent"
+                    android:textColor="@color/battery_ok"
                     android:textSize="18sp"
                     android:textStyle="bold" />
             </LinearLayout>

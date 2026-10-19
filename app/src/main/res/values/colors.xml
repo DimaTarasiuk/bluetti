@@ -6,6 +6,7 @@
     <color name="fg">#FFEAF3EE</color>
     <color name="muted">#FF8B9A91</color>
     <color name="accent">#FF3DDC97</color>
+    <color name="battery_ok">#FF1F8F5C</color>
     <color name="accent_dim">#663DDC97</color>
     <color name="line">#FF24332C</color>
     <color name="ic_bg">#FF10241C</color>

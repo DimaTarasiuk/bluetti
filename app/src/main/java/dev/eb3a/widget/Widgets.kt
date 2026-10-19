@@ -40,12 +40,4 @@ class RingWidget : BaseWidget() {
     override val kind = WidgetKind.RING
 }
 
-/** Полоса 4×1: нагрузка, AC, DC, батарея. */
-class StripWidget : BaseWidget() {
-    override val kind = WidgetKind.STRIP
-}
 
-/** Потоки 4×2: полоски AC, DC, заряд и батарея. */
-class FlowWidget : BaseWidget() {
-    override val kind = WidgetKind.FLOW
-}

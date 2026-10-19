@@ -348,7 +348,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun batteryColor(battery: Int): Int = when {
-        battery >= 50 -> 0xFF3DDC97.toInt()
+        battery >= 50 -> 0xFF1F8F5C.toInt()
         battery >= 20 -> 0xFFFFB84D.toInt()
         else -> 0xFFFF5C5C.toInt()
     }
