@@ -2,6 +2,7 @@ package dev.eb3a.widget
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -23,6 +24,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import java.util.UUID
@@ -428,22 +430,24 @@ class BleService : Service() {
         )
         StationStore.publish(this, snap)
         WidgetRenderer.push(this)
-        val battery = if (sample.battery in 0..100) "${sample.battery}%" else "—"
-        updateNotification("${snap.loadW} Вт · батарея $battery")
+        updateNotification()
         armPoll(4000)
     }
 
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT < 26) return
         val manager = getSystemService(NotificationManager::class.java)
-        val channel = NotificationChannel(CHANNEL, "Связь с EB3A", NotificationManager.IMPORTANCE_LOW)
-        channel.description = "Текущая нагрузка станции"
+        val channel = NotificationChannel(CHANNEL, "Связь с EB3A", NotificationManager.IMPORTANCE_DEFAULT)
+        channel.description = "Ватты и заряд на экране блокировки и Always On"
         channel.setShowBadge(false)
+        channel.setSound(null, null)
+        channel.enableVibration(false)
+        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         manager.createNotificationChannel(channel)
     }
 
     private fun promote(text: String) {
-        val notification = buildNotification(text)
+        val notification = buildNotification(status = text)
         if (Build.VERSION.SDK_INT >= 34) {
             startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
         } else {
@@ -451,20 +455,64 @@ class BleService : Service() {
         }
     }
 
-    private fun updateNotification(text: String) {
+    private fun updateNotification(status: String? = null) {
         val manager = getSystemService(NotificationManager::class.java)
-        manager.notify(NOTIF_ID, buildNotification(text))
+        manager.notify(NOTIF_ID, buildNotification(status = status))
     }
 
-    private fun buildNotification(text: String) = NotificationCompat.Builder(this, CHANNEL)
-        .setSmallIcon(R.drawable.ic_stat)
-        .setContentTitle("Bluetti EB3A")
-        .setContentText(text)
-        .setOngoing(true)
-        .setOnlyAlertOnce(true)
-        .setContentIntent(openApp())
-        .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
-        .build()
+    /**
+     * Ватты и % в заголовке — так их чаще видно на Always On / lock screen.
+     * Свой экран AOD Android сторонним приложениям не даёт.
+     */
+    private fun buildNotification(status: String? = null): android.app.Notification {
+        val snap = StationStore.state
+        val fresh = snap.fresh()
+        val battery = if (snap.battery in 0..100) "${snap.battery}%" else "—%"
+        val title = if (fresh) {
+            "${snap.loadW} Вт · $battery"
+        } else {
+            status ?: snap.status.ifBlank { "Нет связи" }
+        }
+        val body = if (fresh) {
+            "Bluetti EB3A · на связи"
+        } else {
+            "Bluetti EB3A"
+        }
+
+        val compact = RemoteViews(packageName, R.layout.notification_live).apply {
+            setTextViewText(R.id.notif_watts, if (fresh) "${snap.loadW} Вт" else "— Вт")
+            setTextViewText(R.id.notif_battery, if (fresh) battery else "—%")
+            setTextColor(
+                R.id.notif_battery,
+                if (fresh && snap.battery in 0..100) {
+                    when {
+                        snap.battery >= 50 -> 0xFF1F8F5C.toInt()
+                        snap.battery >= 20 -> 0xFFFFB84D.toInt()
+                        else -> 0xFFFF5C5C.toInt()
+                    }
+                } else {
+                    0xFF8B9A91.toInt()
+                },
+            )
+        }
+
+        return NotificationCompat.Builder(this, CHANNEL)
+            .setSmallIcon(R.drawable.ic_stat)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setSubText(if (fresh) battery else null)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setCustomContentView(compact)
+            .setCustomBigContentView(compact)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(openApp())
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .build()
+    }
 
     private fun openApp(): PendingIntent {
         val intent = Intent(this, MainActivity::class.java)

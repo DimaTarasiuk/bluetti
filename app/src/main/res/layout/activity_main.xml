@@ -433,6 +433,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Не усыплять приложение" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nightstandButton"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:text="Режим тумбочки"
+                app:backgroundTint="@color/surface_hi"
+                app:cornerRadius="14dp" />
         </LinearLayout>
 
         <!-- TRANSPARENCY -->
@@ -499,7 +509,7 @@
             android:layout_marginTop="20dp"
             android:fontFamily="@font/outfit"
             android:lineSpacingExtra="3dp"
-            android:text="Виджеты: зажмите домашний экран → Виджеты → Bluetti EB3A. Приложение только читает станцию и ничего на ней не включает."
+            android:text="Виджеты: зажмите домашний экран → Виджеты → Bluetti EB3A. Ватты и заряд также в постоянном уведомлении — на многих телефонах они видны на Always On и экране блокировки. Приложение только читает станцию."
             android:textColor="@color/muted"
             android:textSize="13sp" />
     </LinearLayout>

@@ -6,4 +6,5 @@
     <string name="widget_desc">Карточка: нагрузка, AC/DC и заряд станции Bluetti EB3A</string>
     <string name="widget_desc_compact">Компактный: только ватты и процент батареи</string>
     <string name="widget_desc_ring">Кольцо: заряд батареи по кругу, нагрузка в центре</string>
+    <string name="nightstand_name">Тумбочка</string>
 </resources>

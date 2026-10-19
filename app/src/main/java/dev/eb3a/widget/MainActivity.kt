@@ -72,6 +72,9 @@ class MainActivity : AppCompatActivity() {
             BleService.stop(this)
         }
         findViewById<MaterialButton>(R.id.optButton).setOnClickListener { askBatteryExemption() }
+        findViewById<MaterialButton>(R.id.nightstandButton).setOnClickListener {
+            startActivity(Intent(this, NightstandActivity::class.java))
+        }
         findViewById<MaterialButton>(R.id.macButton).setOnClickListener { connectManualMac() }
         setupTransparencyControl()
         render(Prefs.load(this), animateEntrance = true)

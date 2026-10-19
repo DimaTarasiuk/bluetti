@@ -38,6 +38,14 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".NightstandActivity"
+            android:exported="false"
+            android:label="Тумбочка"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.EB3A.Nightstand"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
         <service
             android:name=".BleService"
             android:exported="false"
