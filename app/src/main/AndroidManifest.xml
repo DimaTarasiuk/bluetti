@@ -41,7 +41,7 @@
         <activity
             android:name=".NightstandActivity"
             android:exported="false"
-            android:label="Тумбочка"
+            android:label="@string/nightstand_name"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.EB3A.Nightstand"
             android:configChanges="orientation|screenSize|keyboardHidden" />

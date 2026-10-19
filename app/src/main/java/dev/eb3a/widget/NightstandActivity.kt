@@ -58,7 +58,7 @@ class NightstandActivity : AppCompatActivity() {
             val snap = StationStore.state.at.takeIf { it > 0 }?.let { StationStore.state }
                 ?: Prefs.load(this@NightstandActivity)
             if (!snap.fresh()) {
-                findViewById<TextView>(R.id.nightStatus).text = snap.status.ifBlank { "Нет связи" }
+                findViewById<TextView>(R.id.nightStatus).text = snap.status.ifBlank { "disconnected" }
             }
             main.postDelayed(this, 1000)
         }
@@ -194,7 +194,7 @@ class NightstandActivity : AppCompatActivity() {
 
     private fun showBrightHint(value: Float) {
         val hint = findViewById<TextView>(R.id.nightBrightHint)
-        hint.text = "Яркость ${(value * 100).toInt()}%"
+        hint.text = "Brightness ${(value * 100).toInt()}%"
         hint.visibility = View.VISIBLE
         hint.alpha = 1f
         main.removeCallbacks(hideBrightHint)
@@ -274,7 +274,7 @@ class NightstandActivity : AppCompatActivity() {
                 battery.setTextColor(theme.muted)
                 bar.progress = 0
             }
-            status.text = "на связи"
+            status.text = "connected"
             status.setTextColor(theme.muted)
             setPulse(true, pulse)
         } else {
@@ -287,7 +287,7 @@ class NightstandActivity : AppCompatActivity() {
             battery.text = "—%"
             battery.setTextColor(theme.muted)
             bar.progress = 0
-            status.text = snap.status.ifBlank { "Нет связи" }
+            status.text = snap.status.ifBlank { "disconnected" }
             status.setTextColor(theme.muted)
             setPulse(false, pulse)
             lastWatts = Int.MIN_VALUE

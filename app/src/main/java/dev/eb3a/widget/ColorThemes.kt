@@ -20,7 +20,7 @@ data class ColorTheme(
 object ColorThemes {
     val all = listOf(
         ColorTheme(
-            name = "Лес",
+            name = "Forest",
             mainBackground = R.drawable.bg_main_green,
             nightBackground = R.drawable.bg_night_green,
             brand = 0xFF1F8F5C.toInt(),
@@ -36,7 +36,7 @@ object ColorThemes {
             line = 0xFF24332C.toInt(),
         ),
         ColorTheme(
-            name = "Беж",
+            name = "Beige",
             mainBackground = R.drawable.bg_main_beige,
             nightBackground = R.drawable.bg_night_beige,
             brand = 0xFFC4A574.toInt(),
@@ -52,7 +52,7 @@ object ColorThemes {
             line = 0xFF3A3228.toInt(),
         ),
         ColorTheme(
-            name = "Новый год",
+            name = "New Year",
             mainBackground = R.drawable.bg_main_nye,
             nightBackground = R.drawable.bg_night_nye,
             brand = 0xFFE8C76B.toInt(),

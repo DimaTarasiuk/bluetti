@@ -48,7 +48,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
-          name: EB3A Ватты (latest)
+          name: Bluetti EB3A (latest)
           body: |
             Автосборка с ветки `${{ github.ref_name }}`.
             Коммит: `${{ github.sha }}`

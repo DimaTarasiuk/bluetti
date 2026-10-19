@@ -345,7 +345,7 @@ class BleService : Service() {
         ready = true
         failStreak = 0
         watchdog?.let { main.removeCallbacks(it) }
-        showIdle("На связи, читаю нагрузку…")
+        showIdle("Connected, reading load…")
         armPoll(350)
     }
 
@@ -420,7 +420,7 @@ class BleService : Service() {
         failStreak = 0
         val snap = Snapshot(
             connected = true,
-            status = "На связи",
+            status = "Connected",
             acOut = sample.acOut,
             dcOut = sample.dcOut,
             acIn = sample.acIn,
@@ -437,8 +437,8 @@ class BleService : Service() {
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT < 26) return
         val manager = getSystemService(NotificationManager::class.java)
-        val channel = NotificationChannel(CHANNEL, "Связь с EB3A", NotificationManager.IMPORTANCE_DEFAULT)
-        channel.description = "Ватты и заряд на экране блокировки и Always On"
+        val channel = NotificationChannel(CHANNEL, "EB3A link", NotificationManager.IMPORTANCE_DEFAULT)
+        channel.description = "Load and battery on lock screen and Always On"
         channel.setShowBadge(false)
         channel.setSound(null, null)
         channel.enableVibration(false)
@@ -474,7 +474,7 @@ class BleService : Service() {
             status ?: snap.status.ifBlank { "Нет связи" }
         }
         val body = if (fresh) {
-            "Bluetti EB3A · на связи"
+            "Bluetti EB3A · connected"
         } else {
             "Bluetti EB3A"
         }

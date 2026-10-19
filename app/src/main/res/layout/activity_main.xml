@@ -164,7 +164,7 @@
                     android:layout_weight="1"
                     android:fontFamily="@font/outfit"
                     android:id="@+id/batteryLabel"
-                    android:text="Батарея"
+                    android:text="Battery"
                     android:textColor="@color/muted"
                     android:textSize="13sp" />
 

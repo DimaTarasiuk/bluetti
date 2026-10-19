@@ -69,7 +69,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit"
-                android:text="нагрузка сейчас"
+                android:text="load"
                 android:textColor="#FF6B7A72"
                 android:textSize="16sp" />
 
@@ -92,7 +92,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:fontFamily="@font/outfit"
-                    android:text="Нет связи"
+                    android:text="disconnected"
                     android:textColor="#FF9AA89F"
                     android:textSize="15sp" />
             </LinearLayout>
@@ -135,7 +135,7 @@
                 android:layout_marginTop="28dp"
                 android:fontFamily="@font/outfit"
                 android:letterSpacing="0.14"
-                android:text="БАТАРЕЯ"
+                android:text="Battery"
                 android:textColor="#FF6B7A72"
                 android:textSize="12sp" />
 
@@ -227,7 +227,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 android:fontFamily="@font/outfit"
-                android:text="нажмите на ватты — тема · свайп — яркость · касание — выход"
+                android:text="tap watts — theme · swipe — brightness · tap — exit"
                 android:textColor="#664E5A54"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -244,7 +244,7 @@
         android:paddingTop="10dp"
         android:paddingRight="18dp"
         android:paddingBottom="10dp"
-        android:text="Яркость 40%"
+        android:text="Brightness 40%"
         android:textColor="#FFEAF3EE"
         android:textSize="18sp"
         android:visibility="gone" />

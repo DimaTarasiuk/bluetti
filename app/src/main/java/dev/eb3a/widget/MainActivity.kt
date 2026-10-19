@@ -317,7 +317,7 @@ class MainActivity : AppCompatActivity() {
                 battery.text = "—"
                 animateProgress(bar, 0)
             }
-            status.text = "На связи · нагрузка ${snap.loadW} Вт"
+            status.text = "Connected · load ${snap.loadW} Вт"
             setConnectedUi(true)
         } else {
             watts.text = "—"
