@@ -161,7 +161,7 @@ object WidgetRenderer {
     private fun flow(context: Context, snap: Snapshot): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_flow)
         if (snap.fresh()) {
-            views.setTextViewText(R.id.flow_caption, "EB3A  ·  нагрузка ${snap.loadW} Вт")
+            views.setTextViewText(R.id.flow_caption, "Bluetti EB3A  ·  ${snap.loadW} Вт")
             views.setTextViewText(R.id.flow_battery, batteryText(snap))
             views.setTextColor(R.id.flow_battery, batteryColor(snap.battery))
             views.setProgressBar(R.id.flow_bat_bar, 100, snap.battery.coerceIn(0, 100), false)

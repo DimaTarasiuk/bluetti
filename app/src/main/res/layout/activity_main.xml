@@ -339,7 +339,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:text="Виджет: зажмите домашний экран → Виджеты → EB3A. Крупная цифра — сколько ватт уходит в нагрузку прямо сейчас. Приложение только читает станцию и ничего на ней не включает."
+            android:text="Виджет: зажмите домашний экран → Виджеты → Bluetti EB3A. Крупная цифра — сколько ватт уходит в нагрузку прямо сейчас. Приложение только читает станцию и ничего на ней не включает."
             android:textColor="@color/muted"
             android:textSize="14sp" />
     </LinearLayout>

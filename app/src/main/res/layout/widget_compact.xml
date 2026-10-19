@@ -33,7 +33,7 @@
                 android:id="@+id/compact_caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="EB3A  ·  нагрузка"
+                android:text="Bluetti EB3A"
                 android:textColor="@color/muted"
                 android:textSize="11sp" />
 

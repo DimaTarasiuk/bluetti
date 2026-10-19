@@ -458,7 +458,7 @@ class BleService : Service() {
 
     private fun buildNotification(text: String) = NotificationCompat.Builder(this, CHANNEL)
         .setSmallIcon(R.drawable.ic_stat)
-        .setContentTitle("EB3A · нагрузка")
+        .setContentTitle("Bluetti EB3A")
         .setContentText(text)
         .setOngoing(true)
         .setOnlyAlertOnce(true)

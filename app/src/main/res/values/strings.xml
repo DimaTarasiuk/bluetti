@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">EB3A Ватты</string>
-    <string name="widget_name">EB3A · Карточка</string>
-    <string name="widget_name_compact">EB3A · Ватты</string>
-    <string name="widget_name_ring">EB3A · Кольцо</string>
-    <string name="widget_name_strip">EB3A · Полоса</string>
-    <string name="widget_name_flow">EB3A · Потоки</string>
+    <string name="widget_name">Bluetti EB3A · Карточка</string>
+    <string name="widget_name_compact">Bluetti EB3A · Ватты</string>
+    <string name="widget_name_ring">Bluetti EB3A · Кольцо</string>
+    <string name="widget_name_strip">Bluetti EB3A · Полоса</string>
+    <string name="widget_name_flow">Bluetti EB3A · Потоки</string>
     <string name="widget_desc">Карточка: нагрузка, AC/DC и заряд станции Bluetti EB3A</string>
     <string name="widget_desc_compact">Компактный: только ватты и процент батареи</string>
     <string name="widget_desc_ring">Кольцо: заряд батареи по кругу, нагрузка в центре</string>
