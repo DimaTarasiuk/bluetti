@@ -28,6 +28,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/brandLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit"
@@ -38,6 +39,7 @@
                 android:textSize="13sp" />
 
             <TextView
+                android:id="@+id/titleLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
@@ -62,14 +64,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp">
 
-                <View
-                    android:id="@+id/heroGlow"
-                    android:layout_width="220dp"
-                    android:layout_height="140dp"
-                    android:layout_gravity="start|center_vertical"
-                    android:alpha="0.55"
-                    android:background="@drawable/hero_glow" />
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -80,6 +74,8 @@
                         android:id="@+id/wattsValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:fontFamily="@font/outfit"
                         android:includeFontPadding="false"
                         android:letterSpacing="-0.04"
@@ -89,6 +85,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/wattsUnit"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
@@ -101,11 +98,12 @@
             </FrameLayout>
 
             <TextView
+                android:id="@+id/wattsCaption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:fontFamily="@font/outfit"
-                android:text="ватт в нагрузку  ·  AC + DC"
+                android:text="ватт в нагрузку  ·  AC + DC · нажмите ватты для темы"
                 android:textColor="@color/muted"
                 android:textSize="14sp" />
 
@@ -165,6 +163,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/outfit"
+                    android:id="@+id/batteryLabel"
                     android:text="Батарея"
                     android:textColor="@color/muted"
                     android:textSize="13sp" />
@@ -205,6 +204,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit"
                 android:letterSpacing="0.12"
+                android:id="@+id/metricsHeader"
                 android:text="ПОТОКИ"
                 android:textColor="@color/muted"
                 android:textSize="12sp" />
@@ -228,6 +228,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/outfit"
+                        android:id="@+id/acOutLabel"
                         android:text="AC выход"
                         android:textColor="@color/blue"
                         android:textSize="12sp" />
@@ -257,6 +258,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/outfit"
+                        android:id="@+id/dcOutLabel"
                         android:text="DC выход"
                         android:textColor="@color/amber"
                         android:textSize="12sp" />
@@ -293,6 +295,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/outfit"
+                        android:id="@+id/acInLabel"
                         android:text="AC вход"
                         android:textColor="@color/muted"
                         android:textSize="12sp" />
@@ -322,6 +325,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/outfit"
+                        android:id="@+id/dcInLabel"
                         android:text="DC вход"
                         android:textColor="@color/violet"
                         android:textSize="12sp" />
@@ -355,6 +359,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit"
                 android:letterSpacing="0.12"
+                android:id="@+id/connectHeader"
                 android:text="СВЯЗЬ"
                 android:textColor="@color/muted"
                 android:textSize="12sp" />
@@ -364,6 +369,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:fontFamily="@font/outfit"
+                android:id="@+id/connectTitle"
                 android:text="Найти станцию рядом или ввести MAC"
                 android:textColor="@color/fg"
                 android:textSize="16sp"
@@ -466,6 +472,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/outfit"
+                    android:id="@+id/transparencyTitle"
                     android:text="Прозрачность виджетов"
                     android:textColor="@color/fg"
                     android:textSize="16sp"

@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -39,8 +40,9 @@ class MainActivity : AppCompatActivity() {
     private var lastWatts = Int.MIN_VALUE
     private var lastBattery = Int.MIN_VALUE
     private var pulseAnimator: ObjectAnimator? = null
-    private var glowAnimator: ObjectAnimator? = null
     private var entered = false
+    private var themeIndex = 0
+    private lateinit var theme: ColorTheme
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -63,7 +65,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, true)
         setContentView(R.layout.activity_main)
+        themeIndex = Prefs.colorTheme(this)
+        applyColorTheme(animate = false)
         findViewById<TextView>(R.id.serialLine).text = Target.SERIAL
+        findViewById<TextView>(R.id.wattsValue).setOnClickListener { cycleColorTheme() }
         findViewById<MaterialButton>(R.id.scanButton).setOnClickListener {
             if (hasAllPermissions()) startScan() else permissionLauncher.launch(neededPermissions())
         }
@@ -120,7 +125,6 @@ class MainActivity : AppCompatActivity() {
         stopScan()
         main.removeCallbacks(clockTick)
         pulseAnimator?.cancel()
-        glowAnimator?.cancel()
         super.onStop()
     }
 
@@ -222,7 +226,7 @@ class MainActivity : AppCompatActivity() {
         if (found.isEmpty()) {
             val empty = TextView(this)
             empty.text = "Пока пусто. Станция должна быть включена и в паре метров."
-            empty.setTextColor(0xFF8B9A91.toInt())
+            empty.setTextColor(if (::theme.isInitialized) theme.muted else 0xFF8B9A91.toInt())
             empty.textSize = 14f
             empty.typeface = resources.getFont(R.font.outfit)
             list.addView(empty)
@@ -239,7 +243,7 @@ class MainActivity : AppCompatActivity() {
             val label = TextView(this)
             val yours = name.equals(Target.SERIAL, ignoreCase = true)
             label.text = if (yours) "$name\nваша станция" else "$name\n$mac"
-            label.setTextColor(0xFFEAF3EE.toInt())
+            label.setTextColor(if (::theme.isInitialized) theme.fg else 0xFFEAF3EE.toInt())
             label.textSize = 15f
             label.typeface = resources.getFont(R.font.outfit)
             label.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -251,17 +255,10 @@ class MainActivity : AppCompatActivity() {
             row.addView(label)
             row.addView(button)
             list.addView(row)
-            if (freshRow(list, row)) {
-                row.alpha = 0f
-                row.translationY = 16f
-                row.animate().alpha(1f).translationY(0f).setDuration(280).start()
-            }
+            row.alpha = 0f
+            row.translationY = 16f
+            row.animate().alpha(1f).translationY(0f).setDuration(280).start()
         }
-    }
-
-    private fun freshRow(list: LinearLayout, row: View): Boolean {
-        // always animate newly added rows in this pass
-        return list.indexOfChild(row) >= 0
     }
 
     private fun choose(mac: String, name: String, silent: Boolean = false) {
@@ -303,6 +300,7 @@ class MainActivity : AppCompatActivity() {
         if (fresh) {
             val nextWatts = snap.loadW
             watts.text = nextWatts.toString()
+            if (::theme.isInitialized) watts.setTextColor(theme.fg)
             if (lastWatts != nextWatts && lastWatts != Int.MIN_VALUE) punch(watts)
             lastWatts = nextWatts
             findViewById<TextView>(R.id.acOut).text = snap.acOut.toString()
@@ -323,11 +321,13 @@ class MainActivity : AppCompatActivity() {
             setConnectedUi(true)
         } else {
             watts.text = "—"
+            if (::theme.isInitialized) watts.setTextColor(theme.muted)
             findViewById<TextView>(R.id.acOut).text = "—"
             findViewById<TextView>(R.id.dcOut).text = "—"
             findViewById<TextView>(R.id.acIn).text = "—"
             findViewById<TextView>(R.id.dcIn).text = "—"
             battery.text = "—"
+            if (::theme.isInitialized) battery.setTextColor(theme.muted)
             animateProgress(bar, 0)
             status.text = snap.status
             setConnectedUi(false)
@@ -351,39 +351,115 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun batteryColor(battery: Int): Int = when {
-        battery >= 50 -> 0xFF1F8F5C.toInt()
-        battery >= 20 -> 0xFFFFB84D.toInt()
-        else -> 0xFFFF5C5C.toInt()
+        battery >= 50 -> theme.batteryOk
+        battery >= 20 -> theme.batteryMid
+        else -> theme.batteryLow
     }
 
     private fun tintBatteryBar(bar: ProgressBar, battery: Int) {
         val color = batteryColor(battery)
         bar.progressTintList = ColorStateList.valueOf(color)
-        // layered drawable may ignore progressTint; also mutate solid via drawable if needed
         bar.progressDrawable?.setTint(color)
     }
 
     private fun setConnectedUi(connected: Boolean) {
         val pulse = findViewById<View>(R.id.statusPulse)
-        val glow = findViewById<View>(R.id.heroGlow)
-        pulse.setBackgroundResource(if (connected) R.drawable.pulse_dot else R.drawable.pulse_dot_off)
         pulseAnimator?.cancel()
-        glowAnimator?.cancel()
+        val color = if (::theme.isInitialized) {
+            if (connected) theme.accent else theme.muted
+        } else {
+            if (connected) 0xFF3DDC97.toInt() else 0xFF8B9A91.toInt()
+        }
+        pulse.background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(color)
+        }
         if (connected) {
             pulseAnimator = ObjectAnimator.ofFloat(pulse, View.ALPHA, 1f, 0.25f, 1f).apply {
                 duration = 1400
                 repeatCount = ValueAnimator.INFINITE
                 start()
             }
-            glow.alpha = 0.55f
-            glowAnimator = ObjectAnimator.ofFloat(glow, View.ALPHA, 0.35f, 0.7f, 0.35f).apply {
-                duration = 2600
-                repeatCount = ValueAnimator.INFINITE
-                start()
-            }
         } else {
             pulse.alpha = 1f
-            glow.animate().alpha(0.18f).setDuration(300).start()
+        }
+    }
+
+    private fun cycleColorTheme() {
+        themeIndex = ColorThemes.nextIndex(themeIndex)
+        Prefs.setColorTheme(this, themeIndex)
+        applyColorTheme(animate = true)
+        toast(theme.name)
+        render(StationStore.state.at.takeIf { it > 0 }?.let { StationStore.state } ?: Prefs.load(this))
+    }
+
+    private fun applyColorTheme(animate: Boolean) {
+        theme = ColorThemes.get(themeIndex)
+        val root = findViewById<View>(R.id.rootScroll)
+        root.setBackgroundResource(theme.mainBackground)
+
+        fun c(id: Int, color: Int) {
+            findViewById<TextView>(id).setTextColor(color)
+        }
+        c(R.id.brandLabel, theme.brand)
+        c(R.id.titleLabel, theme.fg)
+        c(R.id.serialLine, theme.muted)
+        c(R.id.wattsUnit, theme.muted)
+        c(R.id.wattsCaption, theme.muted)
+        c(R.id.statusLine, theme.fg)
+        c(R.id.updatedLine, theme.muted)
+        c(R.id.batteryLabel, theme.muted)
+        c(R.id.metricsHeader, theme.muted)
+        c(R.id.acOutLabel, theme.ac)
+        c(R.id.dcOutLabel, theme.dc)
+        c(R.id.acInLabel, theme.muted)
+        c(R.id.dcInLabel, theme.accent)
+        c(R.id.connectHeader, theme.muted)
+        c(R.id.connectTitle, theme.fg)
+        c(R.id.transparencyTitle, theme.fg)
+        c(R.id.transparencyValue, theme.accent)
+        c(R.id.footerTip, theme.muted)
+
+        findViewById<TextView>(R.id.acOut).setTextColor(theme.fg)
+        findViewById<TextView>(R.id.dcOut).setTextColor(theme.fg)
+        findViewById<TextView>(R.id.acIn).setTextColor(theme.fg)
+        findViewById<TextView>(R.id.dcIn).setTextColor(theme.fg)
+
+        tintSurface(R.id.connectBlock)
+        tintSurface(R.id.transparencyBlock)
+        listOf(
+            findViewById<View>(R.id.acOut).parent as View,
+            findViewById<View>(R.id.dcOut).parent as View,
+            findViewById<View>(R.id.acIn).parent as View,
+            findViewById<View>(R.id.dcIn).parent as View,
+        ).forEach { tile ->
+            tile.background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 16 * resources.displayMetrics.density
+                setColor(theme.surface)
+            }
+        }
+
+        val scan = findViewById<MaterialButton>(R.id.scanButton)
+        scan.backgroundTintList = ColorStateList.valueOf(theme.accent)
+        scan.setTextColor(if (themeIndex == 2) 0xFFFFF8F0.toInt() else 0xFF070B0A.toInt())
+        val seek = findViewById<SeekBar>(R.id.transparencySeek)
+        seek.progressTintList = ColorStateList.valueOf(theme.accent)
+        seek.thumbTintList = ColorStateList.valueOf(theme.accent)
+
+        if (animate) {
+            root.alpha = 0.9f
+            root.animate().alpha(1f).setDuration(200).start()
+        }
+    }
+
+    private fun tintSurface(id: Int) {
+        val view = findViewById<View>(id)
+        view.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 22 * resources.displayMetrics.density
+            setColor(theme.surface)
+            setStroke((1 * resources.displayMetrics.density).toInt().coerceAtLeast(1), theme.line)
         }
     }
 

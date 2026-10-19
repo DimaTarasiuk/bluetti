@@ -80,12 +80,18 @@ object Prefs {
         sp(context).edit().putInt("widget_transparency", value.coerceIn(0, 100)).apply()
     }
 
-    fun nightstandTheme(context: Context): Int =
-        sp(context).getInt("nightstand_theme", 0).coerceIn(0, 2)
+    fun colorTheme(context: Context): Int =
+        sp(context).getInt("color_theme", sp(context).getInt("nightstand_theme", 0)).coerceIn(0, 2)
 
-    fun setNightstandTheme(context: Context, theme: Int) {
-        sp(context).edit().putInt("nightstand_theme", theme.coerceIn(0, 2)).apply()
+    fun setColorTheme(context: Context, theme: Int) {
+        sp(context).edit().putInt("color_theme", theme.coerceIn(0, 2)).apply()
     }
+
+    @Deprecated("use colorTheme")
+    fun nightstandTheme(context: Context): Int = colorTheme(context)
+
+    @Deprecated("use setColorTheme")
+    fun setNightstandTheme(context: Context, theme: Int) = setColorTheme(context, theme)
 
     fun save(context: Context, snap: Snapshot) {
         sp(context).edit()
