@@ -3,7 +3,7 @@
     android:id="@+id/nightRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_nightstand"
+    android:background="@drawable/bg_night_green"
     android:keepScreenOn="true">
 
     <LinearLayout
@@ -24,6 +24,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/nightBrand"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit"
@@ -52,6 +53,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/nightUnit"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
@@ -63,6 +65,7 @@
             </LinearLayout>
 
             <TextView
+                android:id="@+id/nightCaption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/outfit"
@@ -126,6 +129,7 @@
                 android:textSize="14sp" />
 
             <TextView
+                android:id="@+id/nightBatLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
@@ -171,6 +175,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/nightAcLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/outfit"
@@ -196,6 +201,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/nightDcLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/outfit"
@@ -216,13 +222,30 @@
             </LinearLayout>
 
             <TextView
+                android:id="@+id/nightHint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 android:fontFamily="@font/outfit"
-                android:text="коснитесь экрана, чтобы выйти"
+                android:text="нажмите на ватты — тема · свайп — яркость · касание — выход"
                 android:textColor="#664E5A54"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/nightBrightHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="#99030605"
+        android:fontFamily="@font/outfit"
+        android:paddingLeft="18dp"
+        android:paddingTop="10dp"
+        android:paddingRight="18dp"
+        android:paddingBottom="10dp"
+        android:text="Яркость 40%"
+        android:textColor="#FFEAF3EE"
+        android:textSize="18sp"
+        android:visibility="gone" />
 </FrameLayout>

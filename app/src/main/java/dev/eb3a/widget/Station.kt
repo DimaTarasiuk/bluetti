@@ -80,6 +80,13 @@ object Prefs {
         sp(context).edit().putInt("widget_transparency", value.coerceIn(0, 100)).apply()
     }
 
+    fun nightstandTheme(context: Context): Int =
+        sp(context).getInt("nightstand_theme", 0).coerceIn(0, 2)
+
+    fun setNightstandTheme(context: Context, theme: Int) {
+        sp(context).edit().putInt("nightstand_theme", theme.coerceIn(0, 2)).apply()
+    }
+
     fun save(context: Context, snap: Snapshot) {
         sp(context).edit()
             .putBoolean("connected", snap.connected)
