@@ -5,6 +5,9 @@ on:
   push:
     branches: [main, master]
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -28,8 +31,29 @@ jobs:
       - name: Assemble release APK
         run: chmod +x ./gradlew && ./gradlew assembleRelease --no-daemon
 
-      - uses: actions/upload-artifact@v4
+      - name: Prepare APK
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/*.apk dist/eb3a-widget.apk
+
+      - name: Upload Actions artifact
+        uses: actions/upload-artifact@v4
         with:
           name: eb3a-widget-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: dist/eb3a-widget.apk
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: EB3A Ватты (latest)
+          body: |
+            Автосборка с ветки `${{ github.ref_name }}`.
+            Коммит: `${{ github.sha }}`
+          files: dist/eb3a-widget.apk
+          make_latest: true
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -6,4 +6,8 @@
     <color name="accent">#FF3DDC97</color>
     <color name="line">#FF2A3832</color>
     <color name="ic_bg">#FF10241C</color>
+    <color name="blue">#FF4DA3FF</color>
+    <color name="amber">#FFFFB84D</color>
+    <color name="violet">#FFB28DFF</color>
+    <color name="danger">#FFFF5C5C</color>
 </resources>
