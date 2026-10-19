@@ -1,11 +1,14 @@
 package dev.eb3a.widget
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,13 +17,18 @@ import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.Gravity
+import android.view.View
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.google.android.material.button.MaterialButton
 import java.util.Locale
 
@@ -28,6 +36,11 @@ class MainActivity : AppCompatActivity() {
     private val main = Handler(Looper.getMainLooper())
     private val found = linkedMapOf<String, String>()
     private var scanning = false
+    private var lastWatts = Int.MIN_VALUE
+    private var lastBattery = Int.MIN_VALUE
+    private var pulseAnimator: ObjectAnimator? = null
+    private var glowAnimator: ObjectAnimator? = null
+    private var entered = false
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -38,8 +51,17 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread { render(snap) }
     }
 
+    private val clockTick = object : Runnable {
+        override fun run() {
+            val snap = StationStore.state.at.takeIf { it > 0 }?.let { StationStore.state } ?: Prefs.load(this@MainActivity)
+            findViewById<TextView>(R.id.updatedLine).text = updatedText(snap)
+            main.postDelayed(this, 1000)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
         setContentView(R.layout.activity_main)
         findViewById<TextView>(R.id.serialLine).text = Target.SERIAL
         findViewById<MaterialButton>(R.id.scanButton).setOnClickListener {
@@ -52,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.optButton).setOnClickListener { askBatteryExemption() }
         findViewById<MaterialButton>(R.id.macButton).setOnClickListener { connectManualMac() }
         setupTransparencyControl()
-        render(Prefs.load(this))
+        render(Prefs.load(this), animateEntrance = true)
         if (Prefs.isEnabled(this) && !Prefs.mac(this).isNullOrBlank()) {
             BleService.start(this)
         }
@@ -86,11 +108,16 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         StationStore.listen(listener)
         render(StationStore.state.at.takeIf { it > 0 }?.let { StationStore.state } ?: Prefs.load(this))
+        main.removeCallbacks(clockTick)
+        main.post(clockTick)
     }
 
     override fun onStop() {
         StationStore.unlisten(listener)
         stopScan()
+        main.removeCallbacks(clockTick)
+        pulseAnimator?.cancel()
+        glowAnimator?.cancel()
         super.onStop()
     }
 
@@ -134,6 +161,7 @@ class MainActivity : AppCompatActivity() {
         renderDevices()
         scanning = true
         findViewById<TextView>(R.id.statusLine).text = "Ищем EB3A рядом…"
+        setConnectedUi(false)
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
@@ -191,8 +219,9 @@ class MainActivity : AppCompatActivity() {
         if (found.isEmpty()) {
             val empty = TextView(this)
             empty.text = "Пока пусто. Станция должна быть включена и в паре метров."
-            empty.setTextColor(0xFF8EA097.toInt())
+            empty.setTextColor(0xFF8B9A91.toInt())
             empty.textSize = 14f
+            empty.typeface = resources.getFont(R.font.outfit)
             list.addView(empty)
             return
         }
@@ -201,14 +230,15 @@ class MainActivity : AppCompatActivity() {
             val row = LinearLayout(this)
             row.orientation = LinearLayout.HORIZONTAL
             row.gravity = Gravity.CENTER_VERTICAL
-            val pad = (12 * density).toInt()
+            val pad = (10 * density).toInt()
             row.setPadding(0, pad, 0, pad)
 
             val label = TextView(this)
             val yours = name.equals(Target.SERIAL, ignoreCase = true)
             label.text = if (yours) "$name\nваша станция" else "$name\n$mac"
-            label.setTextColor(0xFFE7F0EA.toInt())
+            label.setTextColor(0xFFEAF3EE.toInt())
             label.textSize = 15f
+            label.typeface = resources.getFont(R.font.outfit)
             label.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
 
             val button = MaterialButton(this)
@@ -218,7 +248,17 @@ class MainActivity : AppCompatActivity() {
             row.addView(label)
             row.addView(button)
             list.addView(row)
+            if (freshRow(list, row)) {
+                row.alpha = 0f
+                row.translationY = 16f
+                row.animate().alpha(1f).translationY(0f).setDuration(280).start()
+            }
         }
+    }
+
+    private fun freshRow(list: LinearLayout, row: View): Boolean {
+        // always animate newly added rows in this pass
+        return list.indexOfChild(row) >= 0
     }
 
     private fun choose(mac: String, name: String, silent: Boolean = false) {
@@ -249,26 +289,35 @@ class MainActivity : AppCompatActivity() {
         choose(mac, mac, silent = false)
     }
 
-    private fun render(snap: Snapshot) {
+    private fun render(snap: Snapshot, animateEntrance: Boolean = false) {
         val watts = findViewById<TextView>(R.id.wattsValue)
         val battery = findViewById<TextView>(R.id.batteryValue)
-        val bar = findViewById<android.widget.ProgressBar>(R.id.batteryBar)
+        val bar = findViewById<ProgressBar>(R.id.batteryBar)
         val status = findViewById<TextView>(R.id.statusLine)
         val updated = findViewById<TextView>(R.id.updatedLine)
-        if (snap.fresh()) {
-            watts.text = snap.loadW.toString()
+        val fresh = snap.fresh()
+
+        if (fresh) {
+            val nextWatts = snap.loadW
+            watts.text = nextWatts.toString()
+            if (lastWatts != nextWatts && lastWatts != Int.MIN_VALUE) punch(watts)
+            lastWatts = nextWatts
             findViewById<TextView>(R.id.acOut).text = snap.acOut.toString()
             findViewById<TextView>(R.id.dcOut).text = snap.dcOut.toString()
             findViewById<TextView>(R.id.acIn).text = snap.acIn.toString()
             findViewById<TextView>(R.id.dcIn).text = snap.dcIn.toString()
             if (snap.battery in 0..100) {
                 battery.text = "${snap.battery}%"
-                bar.progress = snap.battery
+                animateProgress(bar, snap.battery)
+                battery.setTextColor(batteryColor(snap.battery))
+                tintBatteryBar(bar, snap.battery)
+                lastBattery = snap.battery
             } else {
                 battery.text = "—"
-                bar.progress = 0
+                animateProgress(bar, 0)
             }
             status.text = "На связи · нагрузка ${snap.loadW} Вт"
+            setConnectedUi(true)
         } else {
             watts.text = "—"
             findViewById<TextView>(R.id.acOut).text = "—"
@@ -276,15 +325,122 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.acIn).text = "—"
             findViewById<TextView>(R.id.dcIn).text = "—"
             battery.text = "—"
-            bar.progress = 0
+            animateProgress(bar, 0)
             status.text = snap.status
+            setConnectedUi(false)
+            lastWatts = Int.MIN_VALUE
         }
-        updated.text = if (snap.at == 0L) {
+        updated.text = updatedText(snap)
+
+        if (animateEntrance && !entered) {
+            entered = true
+            playEntrance()
+        }
+    }
+
+    private fun updatedText(snap: Snapshot): String {
+        return if (snap.at == 0L) {
             "Показаний ещё не было"
         } else {
             val sec = ((System.currentTimeMillis() - snap.at) / 1000).coerceAtLeast(0)
             "Обновлено ${sec} с назад"
         }
+    }
+
+    private fun batteryColor(battery: Int): Int = when {
+        battery >= 50 -> 0xFF3DDC97.toInt()
+        battery >= 20 -> 0xFFFFB84D.toInt()
+        else -> 0xFFFF5C5C.toInt()
+    }
+
+    private fun tintBatteryBar(bar: ProgressBar, battery: Int) {
+        val color = batteryColor(battery)
+        bar.progressTintList = ColorStateList.valueOf(color)
+        // layered drawable may ignore progressTint; also mutate solid via drawable if needed
+        bar.progressDrawable?.setTint(color)
+    }
+
+    private fun setConnectedUi(connected: Boolean) {
+        val pulse = findViewById<View>(R.id.statusPulse)
+        val glow = findViewById<View>(R.id.heroGlow)
+        pulse.setBackgroundResource(if (connected) R.drawable.pulse_dot else R.drawable.pulse_dot_off)
+        pulseAnimator?.cancel()
+        glowAnimator?.cancel()
+        if (connected) {
+            pulseAnimator = ObjectAnimator.ofFloat(pulse, View.ALPHA, 1f, 0.25f, 1f).apply {
+                duration = 1400
+                repeatCount = ValueAnimator.INFINITE
+                start()
+            }
+            glow.alpha = 0.55f
+            glowAnimator = ObjectAnimator.ofFloat(glow, View.ALPHA, 0.35f, 0.7f, 0.35f).apply {
+                duration = 2600
+                repeatCount = ValueAnimator.INFINITE
+                start()
+            }
+        } else {
+            pulse.alpha = 1f
+            glow.animate().alpha(0.18f).setDuration(300).start()
+        }
+    }
+
+    private fun punch(view: View) {
+        view.animate().cancel()
+        view.scaleX = 1f
+        view.scaleY = 1f
+        view.animate()
+            .scaleX(1.06f)
+            .scaleY(1.06f)
+            .setDuration(120)
+            .setInterpolator(OvershootInterpolator(2f))
+            .withEndAction {
+                view.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
+            }
+            .start()
+    }
+
+    private fun animateProgress(bar: ProgressBar, target: Int) {
+        val start = bar.progress
+        if (start == target) return
+        ValueAnimator.ofInt(start, target).apply {
+            duration = 420
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { bar.progress = it.animatedValue as Int }
+            start()
+        }
+    }
+
+    private fun playEntrance() {
+        val blocks = listOf(
+            R.id.heroBlock,
+            R.id.batteryBlock,
+            R.id.metricsBlock,
+            R.id.connectBlock,
+            R.id.transparencyBlock,
+            R.id.footerTip,
+        )
+        blocks.forEachIndexed { index, id ->
+            val view = findViewById<View>(id)
+            view.alpha = 0f
+            view.translationY = 28f
+            view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay((index * 70).toLong())
+                .setDuration(480)
+                .setInterpolator(DecelerateInterpolator(1.6f))
+                .start()
+        }
+        val watts = findViewById<View>(R.id.wattsValue)
+        watts.scaleX = 0.92f
+        watts.scaleY = 0.92f
+        watts.animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .setStartDelay(120)
+            .setDuration(520)
+            .setInterpolator(OvershootInterpolator(1.2f))
+            .start()
     }
 
     private fun askBatteryExemption() {

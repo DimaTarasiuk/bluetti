@@ -1,12 +1,15 @@
 <resources>
-    <color name="bg">#FF0C100F</color>
-    <color name="surface">#FF17211D</color>
-    <color name="fg">#FFE7F0EA</color>
-    <color name="muted">#FF8EA097</color>
+    <color name="bg">#FF070B0A</color>
+    <color name="bg_mid">#FF0E1714</color>
+    <color name="surface">#FF141E1A</color>
+    <color name="surface_hi">#FF1A2822</color>
+    <color name="fg">#FFEAF3EE</color>
+    <color name="muted">#FF8B9A91</color>
     <color name="accent">#FF3DDC97</color>
-    <color name="line">#FF2A3832</color>
+    <color name="accent_dim">#663DDC97</color>
+    <color name="line">#FF24332C</color>
     <color name="ic_bg">#FF10241C</color>
-    <color name="blue">#FF4DA3FF</color>
+    <color name="blue">#FF5AB0FF</color>
     <color name="amber">#FFFFB84D</color>
     <color name="violet">#FFB28DFF</color>
     <color name="danger">#FFFF5C5C</color>
