@@ -20,7 +20,7 @@ data class Snapshot(
     val chargeW: Int get() = (acIn.coerceAtLeast(0) + dcIn.coerceAtLeast(0))
 
     fun fresh(now: Long = System.currentTimeMillis()): Boolean {
-        return connected && at > 0 && now - at < 20_000
+        return connected && at > 0 && now - at < 45_000
     }
 }
 
@@ -52,6 +52,8 @@ object StationStore {
     fun unlisten(listener: (Snapshot) -> Unit) {
         listeners.remove(listener)
     }
+
+    fun hasListeners(): Boolean = listeners.isNotEmpty()
 }
 
 object Prefs {

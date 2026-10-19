@@ -41,6 +41,13 @@ class BleService : Service() {
     private var activeMac: String? = null
     private var session = 0
     private var watchdog: Runnable? = null
+    private var gotFirstSample = false
+
+    /** Реже опрашиваем станцию — иначе BLE не даёт ей «уснуть». */
+    private fun nextPollDelayMs(): Long {
+        // экран приложения/тумбочки открыт — чуть чаще; иначе экономнее
+        return if (StationStore.hasListeners()) POLL_INTERACTIVE_MS else POLL_IDLE_MS
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -183,6 +190,7 @@ class BleService : Service() {
         ready = false
         servicesHooked = false
         commandOutstanding = false
+        gotFirstSample = false
         buffer.clear()
         writeChar = null
         main.removeCallbacks(pollRunnable)
@@ -293,7 +301,7 @@ class BleService : Service() {
             return
         }
         try {
-            gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
+            gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED)
             if (!gatt.requestMtu(247)) gatt.discoverServices()
         } catch (e: SecurityException) {
             dropAndRetry("Нет разрешения Bluetooth", 8000)
@@ -346,7 +354,7 @@ class BleService : Service() {
         failStreak = 0
         watchdog?.let { main.removeCallbacks(it) }
         showIdle("Connected, reading load…")
-        armPoll(350)
+        armPoll(400)
     }
 
     @SuppressLint("MissingPermission")
@@ -418,6 +426,13 @@ class BleService : Service() {
             return
         }
         failStreak = 0
+        if (!gotFirstSample) {
+            gotFirstSample = true
+            try {
+                gatt?.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER)
+            } catch (_: Exception) {
+            }
+        }
         val snap = Snapshot(
             connected = true,
             status = "Connected",
@@ -431,7 +446,7 @@ class BleService : Service() {
         StationStore.publish(this, snap)
         WidgetRenderer.push(this)
         updateNotification()
-        armPoll(4000)
+        armPoll(nextPollDelayMs())
     }
 
     private fun ensureChannel() {
@@ -528,6 +543,8 @@ class BleService : Service() {
         private const val TAG = "EB3A"
         private const val CHANNEL = "eb3a_link"
         private const val NOTIF_ID = 41
+        private const val POLL_INTERACTIVE_MS = 15_000L
+        private const val POLL_IDLE_MS = 30_000L
         const val ACTION_STOP = "dev.eb3a.widget.STOP"
 
         private val SERVICE_UUID: UUID = UUID.fromString("0000ff00-0000-1000-8000-00805f9b34fb")
