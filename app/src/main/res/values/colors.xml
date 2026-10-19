@@ -1,0 +1,9 @@
+<resources>
+    <color name="bg">#FF0C100F</color>
+    <color name="surface">#FF17211D</color>
+    <color name="fg">#FFE7F0EA</color>
+    <color name="muted">#FF8EA097</color>
+    <color name="accent">#FF3DDC97</color>
+    <color name="line">#FF2A3832</color>
+    <color name="ic_bg">#FF10241C</color>
+</resources>

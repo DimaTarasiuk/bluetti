@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">EB3A Ватты</string>
+    <string name="widget_name">EB3A</string>
+    <string name="widget_desc">Сколько ватт сейчас отдаёт станция Bluetti EB3A</string>
+</resources>
